@@ -12,4 +12,4 @@ client.send('hello'.encode('utf-8'))
 
 response = client.recv(4096)
 
-print (response)
+print response

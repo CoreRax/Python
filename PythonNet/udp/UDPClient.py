@@ -10,4 +10,4 @@ client.sendto("AAABBBCCC",(target_host,target_port))
 
 data, addr = client.recvfrom(4096)
 
-print (data)
+print data
