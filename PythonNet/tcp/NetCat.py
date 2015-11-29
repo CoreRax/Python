@@ -84,8 +84,94 @@ def main():
     if listen:
         server_loop()
 
+def server_loop:
+    global target
 
-main()
+    #如果没有定义目标，那么监听所有的接口
+    if not len(target):
+        target = "0.0.0.0"
+
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.bind((target, port))
+
+    server.listen(5)
+
+    while True:
+        client_socket,addr = server.accept()
+
+        #拆分一个线程处理新的客户端
+        client_thread = threading.Thread(target=client_handler,args=(client_socket,))
+        client_thread.start()
+
+#实现对命令行shell的创建和命令的执行进行处理
+def run_command(command):
+    #换行
+    command = command.rstrip()
+    #运行命令行并将结果返回
+    try:
+        output = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
+    except:
+        output = "Failed to execute command.\r\n"
+
+    #将输出发送
+    return output
+
+#实现文件上传，命令执行，和与shell相关的功能
+def client_handler(client_socket):
+    global upload
+    global execute
+    global command
+
+    #检测文件上传
+    if len(upload_distination):
+        #读取所有的字符并写下目标
+        file_buffer = ""
+
+        #持续读取数据直到没有符合的数据
+        while True:
+            data = client_socket.recv(1024)
+
+            if not data:
+                break
+            else:
+                file_buffer += data
+
+        #现在我们接收这些数据并将他们写出来
+        try:
+            file_descriptor = open(upload_distination,"wb")
+            file_descriptor.write(file_buffer)
+            file_descriptor.close()
+
+            #确认文件已经写出来
+            client_socket.send("Successfully saved file to %s\r\n" %upload_distination)
+        except:
+            client_socket.send("Failed to save file to %s\r\n" %upload_distination)
+
+
+    #检查命令执行
+    if len(execute):
+        #运行命令
+        output = run_command(execute)
+
+        client_socket.send(output)
+
+    #如果需要一个命令行shell， 那么我们进入另一个循环
+    if command:
+        while True:
+            #跳出一个窗口
+            client_socket.send("<cheng:#> ")
+
+            #现在接收文件直到发现换行符
+            cmd_buffer = ""
+            while "\n" not in cmd_buffer:
+                cmd_buffer += client_socket.recv(1024)
+
+            #返还命令输出
+            response = run_command(cmd_buffer)
+
+            #返回响应数据
+            client_socket.send(response)
+
 
 def client_sender(buffer):
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -125,3 +211,5 @@ def client_sender(buffer):
     except:
         print "[*] Exception ! Exitting"
         client.close()
+
+main()
