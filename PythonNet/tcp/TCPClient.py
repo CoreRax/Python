@@ -1,15 +1,15 @@
 #coding=utf-8
 import socket
 
-target_host = "0.0.0.0"
+target_host = "127.0.0.1"
 target_port = 9999
 
 client = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 
 client.connect((target_host,target_port))
 
-client.send("你好")
+client.send('hello'.encode('utf-8'))
 
 response = client.recv(4096)
 
-print response
+print (response)
