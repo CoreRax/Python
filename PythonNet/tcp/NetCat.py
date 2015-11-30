@@ -84,7 +84,10 @@ def main():
     if listen:
         server_loop()
 
+main()
+
 def server_loop:
+
     global target
 
     #如果没有定义目标，那么监听所有的接口
@@ -211,5 +214,3 @@ def client_sender(buffer):
     except:
         print "[*] Exception ! Exitting"
         client.close()
-
-main()
